@@ -32,7 +32,7 @@ Version ??
 `-v, --version` : show program's version number and exit
 
 ## Output 
-Output is directed to the standard output device (_stdout_).
+Output is directed to the standard output device (*stdout*).
 
 #### Example
 
