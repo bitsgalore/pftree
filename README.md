@@ -19,11 +19,11 @@ Version ??
 ## Command line use
 
 #### Usage
-`pftree.py [-h] [-v] p2In`
+`pftree.py [-h] [-v] dirIn`
 
 #### Positional arguments
 
-`dirIn` : input directory tree
+`dirIn` : input directory tree (or single file)
 
 #### Optional arguments
 

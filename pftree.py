@@ -45,7 +45,7 @@ from glob import glob
 
 scriptPath, scriptName = os.path.split(sys.argv[0])
 
-__version__= "0.2.0"
+__version__= "0.3.0"
 
 def main_is_frozen():
     return (hasattr(sys, "frozen") or # new py2exe
@@ -86,7 +86,7 @@ def parseCommandLine():
     parser = argparse.ArgumentParser(description="Analyse PDF files in directory tree with Apache Preflight (PDFBox)",version=__version__)
 
     # Add arguments
-    parser.add_argument('dirIn', action="store", help="input directory tree")
+    parser.add_argument('dirIn', action="store", help="input directory tree (or single file)")
     # Parse arguments
     args=parser.parse_args()
     
@@ -142,16 +142,18 @@ def main():
     args=parseCommandLine()
     dirIn=args.dirIn
 
-    # Check if dirIn is directory (and exit if not)
-    if os.path.isdir(dirIn)==False:
-        msg=dirIn + " is not a directory!"
+    # Check if dirIn is directory or file, and create list of all input files
+    if os.path.isfile(dirIn)==True:
+        myFilesIn=[dirIn]
+    elif os.path.isdir(dirIn)==True:
+        myFilesIn=getFilesFromTree(dirIn)
+    else:
+        msg=dirIn + " is not a directory or file!"
         errorExit(msg)
                
     # Create output elementtree object
     root=ET.Element('preflight')
                         
-    # Generate list of files to process
-    myFilesIn=getFilesFromTree(dirIn)
     numberOfFiles=len(myFilesIn)
 
     for i in range(0,numberOfFiles):
