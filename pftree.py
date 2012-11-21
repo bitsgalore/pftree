@@ -31,6 +31,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
+# TODO: if exception occurs in Preflight validation result is now 'valid',
+# change this!!
 
 import sys
 import os
@@ -42,7 +45,7 @@ from glob import glob
 
 scriptPath, scriptName = os.path.split(sys.argv[0])
 
-__version__= "0.1.0"
+__version__= "0.2.0"
 
 def main_is_frozen():
     return (hasattr(sys, "frozen") or # new py2exe
@@ -92,7 +95,7 @@ def parseCommandLine():
 def getErrors(output):
     # Parse preflight output and return error codes and descriptions as element object
     
-    errorsElt=ET.Element("errors")
+    errorsElt=ET.Element("validationErrors")
     outputLines=output.split('\n')
     noLines=len(outputLines)
     
@@ -165,11 +168,29 @@ def main():
             
             p = sub.Popen(systemString,stdout=sub.PIPE,stderr=sub.PIPE)
             output, errors = p.communicate()
+            
+            # Exit status
+            preflightExitCode=p.returncode
+            
+            #sys.stderr.write(str(preflightExitCode))
+            
+            if preflightExitCode<=0:
+                # Value can be -1 in case of warnings
+                preflightExitStatus="Success"
+            else:
+                preflightExitStatus="Failure"
                     
             # Extract error codes and descriptions from output
             errorCodesDescs=getErrors(output)
             
-            if len(errorCodesDescs)!=0:
+            if preflightExitCode>0:
+                # Preflight raised an exception (we're ignoring warnings here!)
+                isValidPDFA1b="False"
+                
+                # Append system errors to output
+                fileElt.appendChildTagWithText("sysErrors", errors)
+                
+            elif len(errorCodesDescs)!=0:
                 # Errors were found, so not valid
                 isValidPDFA1b="False"
                 
@@ -180,7 +201,8 @@ def main():
                 # No errors found, so valid
                 isValidPDFA1b="True"
             
-            # Append validation outcome to output
+            # Append validation outcome and preflightExitStatus to output
+            fileElt.appendChildTagWithText("preflightExitStatus", preflightExitStatus)
             fileElt.appendChildTagWithText("isValidPDFA1b", isValidPDFA1b)
             
             # Add output to root element 
